@@ -1,4 +1,5 @@
 const { randomUUID } = require('crypto');
+const { query } = require('express');
 
 async function connect(){
     if(global.connection && global.connection.state !== 'disconnected')
@@ -19,107 +20,71 @@ async function connect(){
 }
 
 async function getAllProducts(){
-    const conn = await connect();
+    try {
+        const conn = await connect();
+        const query = `SELECT * FROM products LIMIT 1000;`;
+        console.log(`Executando query: ${query}`);
+        const [rows, fields] = await connection.execute(query);
+        console.log(`Rows: ${JSON.stringify(rows)}`);
+        return rows;
+    } catch(err) {
+        console.log("Erro SQL: " + err.message);
+        throw 'Erro inesperado'
+    }
     
-    const query = `SELECT * FROM products LIMIT 1000;`;
-    console.log(`Executando query: ${query}`);
-
-    const [rows, fields] = await connection.execute(query);
-    console.log(`Rows: ${JSON.stringify(rows)}`);
-    return rows;
 }
 
 async function getProductById(id){
     const conn = await connect();
-    
-    const query = `SELECT * FROM products WHERE id = "${id}";`;
+    const query = `SELECT * FROM products WHERE id = ?;`;
     console.log(`Executando query: ${query}`);
+    try {
+        const [rows, fields] = await connection.execute(query, [id]);
+        return rows;
+    } catch(err) {
+        console.log("Erro SQL: " + err.message);
+        throw("Erro Inesperado na consulta");
+    }
     
-    const [rows, fields] = await connection.execute(query);
-
-    return rows;
 }
 
-
 async function updateProductById(id, name, description, value){
+    const conn = await connect();
+    const query = `UPDATE products SET name = ?, description = ?, value = ? WHERE id = ?;`;
+    console.log(`Executando query: ${query}`);
     try{
-        const conn = await connect();
-    
-        const query = `UPDATE products SET name = "${name}", description = "${description}", value = ${value} WHERE id = "${id}";`;
-        console.log(`Executando query: ${query}`);
-        
-        const [rows] = await conn.execute(query);
+        const [rows] = await conn.execute(query, [name, description, value, id]);
         return rows;
     }catch(err){
-        throw {code: 500, message: 'Erro inesperado ao tentar cadastrar usuário'};
+        throw {code: 500, message: 'Erro inesperado ao tentar atualizar o produto!'};
     }
 }
 
 async function deleteProductById(id){
     const conn = await connect();
+    const query = `DELETE FROM products WHERE id = ?;`;
+    try {
+        console.log(`Executando query: ${query}`);
+        await connection.execute(query, [id]);
+    } catch (err) {
+        throw("Erro SQL: " + err.message);
+    }
     
-    const query = `DELETE FROM products WHERE id = "${id}";`;
-    console.log(`Executando query: ${query}`);
-
-    await connection.execute(query);
 }
 
 async function insertProduct(name, description, value){
     const conn = await connect();
-
     const query = `INSERT INTO products(id, name, description, value) VALUES ("${randomUUID()}", "${name}", "${description}", ${value});`;
     console.log(`Executando query: ${query}`);
-
     try{
-        await connection.execute(query);
+        await connection.execute(query, [name, description, value]);
     }catch(err){
         if(err.errno === 1062){
-            throw {code: 400, message: 'Já existe um producte cadastrado com este usuário!'};
+            throw {code: 400, message: 'Já existe um produto cadastrado!'};
         }else{
-            throw {code: 500, message: 'Erro inesperado ao tentar cadastrar usuário'};
+            throw {code: 500, message: 'Erro inesperado ao tentar cadastrar o produto!'};
         }
     }
 }
 
-async function selectUsers(){
-    const conn = await connect();
-    
-    const query = `SELECT * FROM users LIMIT 1000;`;
-    console.log(`Executando query: ${query}`);
-
-    const [rows, fields] = await connection.execute(query);
-    console.log(`Rows: ${JSON.stringify(rows)}`);
-    return rows;
-}
-
-async function selectUserByLogin(user){
-    const conn = await connect();
-    
-    const query = "SELECT * FROM `users` WHERE `user` = ?;";
-    console.log(`Executando query: ${query}`);
-    
-    const [rows, fields] = await connection.execute(query, [user]);
-
-    return rows;
-}
-
-async function insertUser(user, password){
-    const conn = await connect();
-
-    const query = "INSERT INTO users(id, user, password) VALUES (?, ?, ?);";
-    console.log(`Executando query: ${query}`);
-
-    try{
-        const [rows, fields] = await connection.execute(query, [randomUUID(), user, password]);
-        return rows;
-    }catch(err){
-        if(err.errno === 1062){
-            throw {code: 500, message: 'Erro ao cadastrar usuário: Usuário já existe'};
-        }else{
-            throw {code: 500, message: 'Erro inesperado ao tentar cadastrar usuário'};
-        }
-    }
-}
-
-
-module.exports = {getProductById, getAllProducts, insertProduct, updateProductById, deleteProductById, selectUsers, selectUserByLogin, insertUser}
+module.exports = {getProductById, getAllProducts, insertProduct, updateProductById, deleteProductById}

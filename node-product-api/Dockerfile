@@ -15,4 +15,4 @@ RUN npm config set prefix "/home/node_modules" \
     && npm i express-oauth2-jwt-bearer \
     && npm i -g nodemon
 
-CMD nodemon app.js
+CMD nodemon -L app.js

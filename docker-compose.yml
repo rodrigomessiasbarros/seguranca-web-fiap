@@ -24,13 +24,13 @@ services:
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
-  # angular-auth0-test:
-  #   build: angular-spa
-  #   depends_on:
-  #     - db
-  #     - node-product-api
-  #   ports:
-  #     - "4200:4200"
-  #   environment:
-  #     SERVER_PORT: "4200"
+  angular-auth0-test:
+    build: angular-spa
+    depends_on:
+      - db
+      - node-product-api
+    ports:
+      - "4200:4200"
+    environment:
+      SERVER_PORT: "4200"
 

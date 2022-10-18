@@ -1,12 +1,8 @@
 // Bibliotecas e constantes
-
 const fs = require('fs');
 var https = require('https');
 var cookieParser = require('cookie-parser');
 var RateLimit = require('express-rate-limit');
-//var expressJwt = require('express-jwt');
-//var SECRET = 'FZWJIVNzVjEqdnnqjRXmJmV8DYeTgLaTKXgKueu7onJfkiHfAUQDV0XtNboBkAoV';
-
 const bodyParser = require('body-parser');
 const express = require('express');
 const db = require("./db");
@@ -30,7 +26,7 @@ const checkJwt = auth({
 
 app.use(function(req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, authorization');
     res.setHeader('Access-Control-Allow-Credentials', true);
     next();
@@ -44,9 +40,6 @@ app.use(cookieParser());
 var limiter = new RateLimit({
     windowMs: 15*60*1000,
     max: 50,
-    //standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-	//legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-    //delayMs: 300,
     message: "Too many accounts created from this IP, please try again after an hour"
 });
 
@@ -59,7 +52,6 @@ app.get('/products', checkJwt, checkScopes, async (req, res, next) => {
     res.status(200).json(resp);
 });
 
-//checkJwt, checkScopes,
 app.post('/products', checkJwt, checkScopes, async (req, res, next) => { 
     try{
         var name = req.body.name;
@@ -74,10 +66,7 @@ app.post('/products', checkJwt, checkScopes, async (req, res, next) => {
     }
 });
 
-
-//checkJwt, checkScopes, 
 app.get('/products/:id', checkJwt, checkScopes, async (req, res, next) => { 
-
     try{
         var id = req.params.id;
         const [rows] = await db.getProductById(id);
@@ -90,12 +79,9 @@ app.get('/products/:id', checkJwt, checkScopes, async (req, res, next) => {
     }
 });
 
-//checkJwt, checkScopes, 
 app.put('/products/:id', checkJwt, checkScopes, async (req, res, next) => { 
-
     try{
         var id = req.params.id;
-
         var name = req.body.name;
         var description = req.body.description
         var value = req.body.value
@@ -110,9 +96,7 @@ app.put('/products/:id', checkJwt, checkScopes, async (req, res, next) => {
     }
 });
 
-//checkJwt, checkScopes, 
 app.delete('/products/:id', checkJwt, checkScopes, async (req, res, next) => {
-
     try{
         var id = req.params.id;
         await db.deleteProductById(id);

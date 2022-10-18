@@ -1,7 +1,7 @@
 {
   "domain": "dev-rg7q8np0.us.auth0.com",
   "clientId": "vxpeETXSChRfwRi5JWqdIWdTlKPBGNtG",
-  "audience": "http://localhost:4002",
+  "audience": "http://localhost:4200",
   "apiUri": "https://localhost:3001",
   "appUri": "http://localhost:4200",
   "errorPath": "/error"
